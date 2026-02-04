@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
-import { fetchNotes, deleteNote } from "../../services/noteService";
-import toast, { Toaster} from "react-hot-toast";
+import { fetchNotes } from "../../services/noteService";
+import { Toaster } from "react-hot-toast";
 import NoteList from "../NoteList/NoteList";
 import SearchBox from "../SearchBox/SearchBox";
 import Pagination from "../Pagination/Pagination";
@@ -14,7 +14,6 @@ import css from "./App.module.css";
 
 export default function App() { 
 
-const queryClient = useQueryClient();
 const [search, setSearch] = useState("");
 const [page, setPage] = useState(1);
 const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,21 +23,13 @@ const [isModalOpen, setIsModalOpen] = useState(false);
 const { data, isLoading, isError } = useQuery({
 queryKey: ["notes", debouncedSearch, page],
 queryFn: () => fetchNotes(debouncedSearch, page),
+placeholderData: keepPreviousData,
 });
 
 const totalPages = data?.totalPages ?? 0; 
  
 const openModal = () => setIsModalOpen(true);
 const closeModal = () => setIsModalOpen(false);
-
-const { mutate: deleteNoteMutate } = useMutation({
-    mutationFn: deleteNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-      toast.success("Note deleted!");
-    },
-    onError: () => toast.error("Error deleting note")
-});
     
 return (
 <div className={css.app}>
@@ -70,7 +61,6 @@ return (
         {data && data.notes.length > 0 ? (
         <NoteList
             notes={data.notes}
-            onDelete={deleteNoteMutate} 
         />
         ) : (
           !isLoading && <p>No notes found.</p>

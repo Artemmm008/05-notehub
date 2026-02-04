@@ -10,10 +10,7 @@ const noteUT = axios.create({
 
 export interface FetchNotesResponse {
   notes: Note[];
-  total: number;
   totalPages: number;
-  page: number;
-  perPage: number;
 }
 
 export const fetchNotes = async (search: string, page: number): Promise<FetchNotesResponse> => {
